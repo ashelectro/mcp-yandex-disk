@@ -679,4 +679,4 @@ if __name__ == "__main__":
     if not YANDEX_OAUTH_TOKEN:
         logger.error("YANDEX_OAUTH_TOKEN не установлен! Сервер не сможет работать.")
     logger.info(f"Запуск yadisk_mcp на порту {PORT}")
-    mcp.run(transport="sse")
+    mcp.run(transport="streamable-http")
