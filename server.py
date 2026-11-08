@@ -675,8 +675,32 @@ async def yadisk_publish(params: PublishInput) -> str:
 
 # --- Запуск ---
 
+import hmac
+from starlette.responses import JSONResponse
+
+MCP_ACCESS_TOKEN = os.environ.get("MCP_ACCESS_TOKEN", "")
+
+class BearerAuth:
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] == "http":
+            headers = dict(scope["headers"])
+            got = headers.get(b"authorization", b"")
+            expected = f"Bearer {MCP_ACCESS_TOKEN}".encode()
+            if not MCP_ACCESS_TOKEN or not hmac.compare_digest(got, expected):
+                resp = JSONResponse({"error": "unauthorized"}, status_code=401)
+                await resp(scope, receive, send)
+                return
+        await self.app(scope, receive, send)
+
 if __name__ == "__main__":
+    import uvicorn
     if not YANDEX_OAUTH_TOKEN:
-        logger.error("YANDEX_OAUTH_TOKEN не установлен! Сервер не сможет работать.")
-    logger.info(f"Запуск yadisk_mcp на порту {PORT}")
-    mcp.run(transport="streamable-http")
+        logger.error("YANDEX_OAUTH_TOKEN не установлен!")
+    if not MCP_ACCESS_TOKEN:
+        logger.error("MCP_ACCESS_TOKEN не установлен! Все запросы будут отклонены.")
+    app = mcp.streamable_http_app()
+    app.add_middleware(BearerAuth)
+    uvicorn.run(app, host="0.0.0.0", port=PORT)
