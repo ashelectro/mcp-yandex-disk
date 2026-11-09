@@ -24,7 +24,7 @@ logger = logging.getLogger("yadisk_mcp")
 
 # --- MCP-сервер ---
 
-mcp = FastMCP("yadisk_mcp", host="0.0.0.0", port=PORT, max_request_body_size=MAX_REQUEST_BODY_SIZE)
+mcp = FastMCP("yadisk_mcp", host="0.0.0.0", port=PORT, max_request_body_size=MAX_REQUEST_BODY_SIZE, stateless_http=True)
 
 # --- HTTP-клиент ---
 
